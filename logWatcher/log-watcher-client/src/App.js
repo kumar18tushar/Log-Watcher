@@ -16,11 +16,10 @@ function App() {
       axios(config)
       .then(function (response) {
         const logsReceived = response.data.logs;
-        const maxRecoreded = (logs.length > 0) ? logs[logs.length-1].created_at: null;
-        const difference = logsReceived.filter(log => log.created_at>maxRecoreded);
+        const maxRecoreded = (logs.length > 0) ? logs[logs.length-1].server_timestamp: null;
+        const difference = logsReceived.filter(log => log.server_timestamp>maxRecoreded);
 
         if(difference.length > 0) {
-          console.log(difference);
           setLogs([...logs, ...difference]);
         } else setLogs([...logs]);
       })

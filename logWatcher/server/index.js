@@ -4,6 +4,7 @@ const fs = require('fs');
 const app = express();
 const port = 4000;
 const cors = require('cors');
+const moment = require('moment');
 
 app.use(express.json());
 app.use(cors());
@@ -11,10 +12,21 @@ const LINES = 10;
 
 const URL = '../logs.txt';
 
+const preFillTheLogFile = async() => {
+  let data = '';
+  let ctr = 0;
+  for(let itr=0;itr<100000;itr++) {
+    const date = new moment().add(ctr, 's').toISOString();
+    ctr+=100;
+    data += `${date}$LogText${itr}\n`
+  }
+  fs.writeFile('../logs.txt', data, (err) => {
+    if (err) throw err;
+  });
+}
+
 app.get('/', (req, res) => {
   const stream = fs.createReadStream(URL);
-
-  // stream.resume();
   let cnt=0;
   let logs = [];
 
@@ -36,18 +48,22 @@ app.get('/', (req, res) => {
   });
 
   stream.on('end', (data) => {
-    console.log('ending the read',  cnt, logs);
+    console.log('ending the read');
     const response = logs.map(curr => {
-      return {
-        line: curr,
-        server_timestamp: Date.now()
-      }
-    });
-    // stream.pause();
+      const currentLog = curr.split("$");
+
+      return (curr.length) ? {
+        line: currentLog[1],
+        server_timestamp: currentLog[0]
+      }: null
+    }).filter(x => x);
     res.status(200).send({logs:response});
   });
 });
 
 app.listen(port, () => {
+  /* for testing purpose */
+  preFillTheLogFile();
+
   console.log(`App server listening on port ${port}!`);
 });

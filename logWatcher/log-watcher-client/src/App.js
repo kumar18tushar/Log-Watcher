@@ -1,5 +1,6 @@
 import './App.css';
 import { useEffect, useState } from 'react';
+const moment = require('moment');
 const axios = require('axios');
 
 function App() {
@@ -16,8 +17,9 @@ function App() {
       axios(config)
       .then(function (response) {
         const logsReceived = response.data.logs;
-        const maxRecoreded = (logs.length > 0) ? logs[logs.length-1].server_timestamp: null;
-        const difference = logsReceived.filter(log => log.server_timestamp>maxRecoreded);
+        const maxRecorded = (logs.length > 0) ? logs[logs.length-1].server_timestamp: null;
+        const difference = (maxRecorded) ? 
+          logsReceived.filter(log => moment(log.server_timestamp).isAfter(maxRecorded)): logsReceived;
 
         if(difference.length > 0) {
           setLogs([...logs, ...difference]);
@@ -39,7 +41,12 @@ function App() {
     <>
       <div className="mainContainer">
         <div className="logsContainer">
-          {Array.from(logs).map(curr => (<div className="logs">{curr.line}</div>))}    
+          {Array.from(logs).map((curr, index) => (
+            <div className="logContainer" key = {index}>
+            <div className="loggedAt">{curr.server_timestamp}</div>
+            <div className="logs">{curr.line}</div>
+            </div>
+          ))}    
         </div>
       </div>
     </>    
